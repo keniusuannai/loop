@@ -9,7 +9,7 @@ class Square {
     private shapeType: number;
     private direction: Direction;
     private position: number[] = [0, 0];
-    static color: string = '#a1bfff';
+    private color: string = '#a1bfff';
     readonly lineWidth: number = 10;
 
     constructor(position: number[], shapeType: number, direction: Direction, color?: string) {
@@ -17,7 +17,7 @@ class Square {
 
         this.shapeType = shapeType;
         this.direction = direction;
-
+        this.color = color;
     }
 
     render(ctx) {
@@ -28,7 +28,7 @@ class Square {
     createShapeHandle(ctx) {
 
         ctx.lineWidth = this.lineWidth;
-        ctx.strokeStyle = Square.color;
+        ctx.strokeStyle = this.color;
 
         //旋转方向
         ctx.translate(this.position[0] + 30, this.position[1] + 30);
@@ -59,7 +59,7 @@ class Square {
         ctx.beginPath();
         ctx.arc(this.position[0] + 30, this.position[1] + 30, 20, 0, Math.PI * 2, true);
         ctx.closePath();
-        ctx.fillStyle = Square.color;
+        ctx.fillStyle = this.color;
         ctx.fill();
 
         ctx.globalCompositeOperation = "destination-out";
@@ -79,7 +79,7 @@ class Square {
 
         ctx.beginPath();
         ctx.arc(this.position[0] + 60, this.position[1] + 60, 30, Math.PI * 1.5, Math.PI, true);
-        ctx.fillStyle = Square.color;
+        ctx.fillStyle = this.color;
         ctx.stroke();
 
         ctx.restore();
@@ -89,16 +89,16 @@ class Square {
         ctx.save();
 
         ctx.lineWidth = this.lineWidth;
-        ctx.strokeStyle = Square.color;
+        ctx.strokeStyle = this.color;
 
         ctx.beginPath();
         ctx.arc(this.position[0], this.position[1], 30, Math.PI * 0.5, 0, true);
-        ctx.fillStyle = Square.color;
+        ctx.fillStyle = this.color;
         ctx.stroke();
 
         ctx.beginPath();
         ctx.arc(this.position[0] + 60, this.position[1], 30, Math.PI, Math.PI * 0.5, true);
-        ctx.fillStyle = Square.color;
+        ctx.fillStyle = this.color;
         ctx.stroke();
 
         ctx.restore();
@@ -107,26 +107,26 @@ class Square {
     createShape4(ctx) {
         ctx.save();
         ctx.lineWidth = this.lineWidth;
-        ctx.strokeStyle = Square.color;
+        ctx.strokeStyle = this.color;
 
         ctx.beginPath();
         ctx.arc(this.position[0], this.position[1], 30, Math.PI * 0.5, 0, true);
-        ctx.fillStyle = Square.color;
+        ctx.fillStyle = this.color;
         ctx.stroke();
 
         ctx.beginPath();
         ctx.arc(this.position[0] + 60, this.position[1], 30, Math.PI, Math.PI * 0.5, true);
-        ctx.fillStyle = Square.color;
+        ctx.fillStyle = this.color;
         ctx.stroke();
 
         ctx.beginPath();
         ctx.arc(this.position[0] + 60, this.position[1] + 60, 30, Math.PI * 1.5, Math.PI, true);
-        ctx.fillStyle = Square.color;
+        ctx.fillStyle = this.color;
         ctx.stroke();
 
         ctx.beginPath();
         ctx.arc(this.position[0], this.position[1] + 60, 30, 0, Math.PI * 1.5, true);
-        ctx.fillStyle = Square.color;
+        ctx.fillStyle = this.color;
         ctx.stroke();
 
         ctx.restore();
@@ -137,6 +137,7 @@ class Loop {
     readonly canvas;
     readonly context;
     data: number[][][] = [];
+    private marked = [];
 
     constructor(canvas) {
         this.canvas = canvas;
@@ -153,16 +154,20 @@ class Loop {
             }
             this.data.push(dataTemp);
         }
-
+        console.log(this.data);
         for (let i = 0; i < 5; i++) {
             for (let j = 0; j < 5; j++) {
                 new Square([i * 60, j * 60], this.data[i][j][0], this.data[i][j][1]).render(this.context);
             }
         }
         //点击
-        this.canvas.addEventListener('click', event=>this.clickHandle(event));
+        this.canvas.addEventListener('click', event => this.clickHandle(event));
+        // 验证是否成功
+        this.validate(0, 0);
+
 
     }
+
 
     clickHandle(event) {
         let x: number = Math.floor((event.clientX - this.canvas.getBoundingClientRect().left) / 60);
@@ -177,10 +182,169 @@ class Loop {
         }
 
     }
-    checkResult(){
+
+    checkGame(posX: number, posY: number) {
         for (let i = 0; i < 5; i++) {
             for (let j = 0; j < 5; j++) {
-                this.data
+
+                //边缘
+                if (i == 0 || j == 0) {
+                    if (this.data[i][j][0] == 4)return false;
+                }
+
+                // 非边缘
+                if (i > 0 && i < 4 && j > 0 && j < 4) {
+                    if (this.validate(i, j))continue;
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    validate(posX: number, posY: number) {
+        // 类型判断
+        if (this.data[posX][posY][0] == 1) {
+            // 四个方向判断
+            if (this.data[posX][posY][1] == 1) {
+                posX -= 1;
+                if (this.data[posX][posY][0] == 1 && this.data[posX][posY][1] == 3) {
+                    return true;
+                }
+                else if (this.data[posX][posY][0] == 2 && (this.data[posX][posY][1] == 1 || this.data[posX][posY][1] == 2)) {
+                    return true;
+                }
+                else if (this.data[posX][posY][0] == 3 && this.data[posX][posY][1] != 1) {
+                    return true;
+                }
+                else if (this.data[posX][posY][0] == 4) {
+                    return true;
+                }
+                return false;
+            }
+            else if (this.data[posX][posY][1] == 2) {
+                posY += 1;
+                if (this.data[posX][posY][0] == 1 && this.data[posX][posY][1] == 4) {
+                    return true;
+                }
+                else if (this.data[posX][posY][0] == 2 && (this.data[posX][posY][1] == 2 || this.data[posX][posY][1] == 3)) {
+                    return true;
+                }
+                else if (this.data[posX][posY][0] == 3 && this.data[posX][posY][1] != 2) {
+                    return true;
+                }
+                else if (this.data[posX][posY][0] == 4) {
+                    return true;
+                }
+                return false;
+            }
+            else if (this.data[posX][posY][1] == 3) {
+                posX += 1;
+                if (this.data[posX][posY][0] == 1 && this.data[posX][posY][1] == 1) {
+                    return true;
+                }
+                else if (this.data[posX][posY][0] == 2 && (this.data[posX][posY][1] == 3 || this.data[posX][posY][1] == 4)) {
+                    return true;
+                }
+                else if (this.data[posX][posY][0] == 3 && this.data[posX][posY][1] != 3) {
+                    return true;
+                }
+                else if (this.data[posX][posY][0] == 4) {
+                    return true;
+                }
+                return false;
+            }
+            else if (this.data[posX][posY][1] == 4) {
+                posY -= 1;
+                if (this.data[posX][posY][0] == 1 && this.data[posX][posY][1] == 2) {
+                    return true;
+                }
+                else if (this.data[posX][posY][0] == 2 && (this.data[posX][posY][1] == 1 || this.data[posX][posY][1] == 4)) {
+                    return true;
+                }
+                else if (this.data[posX][posY][0] == 3 && this.data[posX][posY][1] != 4) {
+                    return true;
+                }
+                else if (this.data[posX][posY][0] == 4) {
+                    return true;
+                }
+                return false;
+            }
+        }
+        else if (this.data[posX][posY][0] == 2) {
+            // 四个方向判断
+            if (this.data[posX][posY][1] == 1) {
+                posY += 1;
+                if (this.data[posX][posY][0] == 1 && this.data[posX][posY][1] != 4) {
+                    return false;
+                }
+                else if (this.data[posX][posY][0] == 2 && (this.data[posX][posY][1] == 1 || this.data[posX][posY][1] == 4)) {
+                    return false;
+                }
+                else if (this.data[posX][posY][0] == 3 && this.data[posX][posY][1] == 2) {
+                    return false;
+                }
+
+                posY -= 1;
+                posX += 1;
+                if (this.data[posX][posY][0] == 1 && this.data[posX][posY][1] != 1) {
+                    return false;
+                }
+                else if (this.data[posX][posY][0] == 2 && (this.data[posX][posY][1] == 1 || this.data[posX][posY][1] == 2)) {
+                    return false;
+                }
+                else if (this.data[posX][posY][0] == 3 && this.data[posX][posY][1] == 3) {
+                    return false;
+                }
+                return true;
+            }
+            else if (this.data[posX][posY][1] == 2) {
+                posY += 1;
+                if (this.data[posX][posY][0] == 1 && this.data[posX][posY][1] == 4) {
+                    return true;
+                }
+                else if (this.data[posX][posY][0] == 2 && (this.data[posX][posY][1] == 2 || this.data[posX][posY][1] == 3)) {
+                    return true;
+                }
+                else if (this.data[posX][posY][0] == 3 && this.data[posX][posY][1] != 2) {
+                    return true;
+                }
+                else if (this.data[posX][posY][0] == 4) {
+                    return true;
+                }
+                return false;
+            }
+            else if (this.data[posX][posY][1] == 3) {
+                posX += 1;
+                if (this.data[posX][posY][0] == 1 && this.data[posX][posY][1] == 1) {
+                    return true;
+                }
+                else if (this.data[posX][posY][0] == 2 && (this.data[posX][posY][1] == 3 || this.data[posX][posY][1] == 4)) {
+                    return true;
+                }
+                else if (this.data[posX][posY][0] == 3 && this.data[posX][posY][1] != 3) {
+                    return true;
+                }
+                else if (this.data[posX][posY][0] == 4) {
+                    return true;
+                }
+                return false;
+            }
+            else if (this.data[posX][posY][1] == 4) {
+                posY -= 1;
+                if (this.data[posX][posY][0] == 1 && this.data[posX][posY][1] == 2) {
+                    return true;
+                }
+                else if (this.data[posX][posY][0] == 2 && (this.data[posX][posY][1] == 1 || this.data[posX][posY][1] == 4)) {
+                    return true;
+                }
+                else if (this.data[posX][posY][0] == 3 && this.data[posX][posY][1] != 4) {
+                    return true;
+                }
+                else if (this.data[posX][posY][0] == 4) {
+                    return true;
+                }
+                return false;
             }
         }
     }
