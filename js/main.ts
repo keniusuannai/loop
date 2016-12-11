@@ -17,7 +17,7 @@ class Square {
 
         this.shapeType = shapeType;
         this.direction = direction;
-        this.color = color;
+        this.color = color || '#a1bfff';
     }
 
     render(ctx) {
@@ -32,7 +32,7 @@ class Square {
 
         //旋转方向
         ctx.translate(this.position[0] + 30, this.position[1] + 30);
-        ctx.rotate((Math.PI / 180) * this.direction * 90);
+        ctx.rotate((Math.PI / 180) * (this.direction + 1) * 90);
         ctx.translate(-(this.position[0] + 30), -(this.position[1] + 30));
 
         switch (this.shapeType) {
@@ -69,7 +69,7 @@ class Square {
         ctx.fill();
         ctx.globalCompositeOperation = "source-over";
 
-        ctx.fillRect(this.position[0] + 25, this.position[1], 10, 20);
+        ctx.fillRect(this.position[0] + 25, this.position[1] + 40, 10, 20);
 
         ctx.restore();
     }
@@ -92,12 +92,12 @@ class Square {
         ctx.strokeStyle = this.color;
 
         ctx.beginPath();
-        ctx.arc(this.position[0], this.position[1], 30, Math.PI * 0.5, 0, true);
+        ctx.arc(this.position[0] + 60, this.position[1] + 60, 30, Math.PI, Math.PI * 1.5, false);
         ctx.fillStyle = this.color;
         ctx.stroke();
 
         ctx.beginPath();
-        ctx.arc(this.position[0] + 60, this.position[1], 30, Math.PI, Math.PI * 0.5, true);
+        ctx.arc(this.position[0], this.position[1] + 60, 30, 0, Math.PI * 1.5, true);
         ctx.fillStyle = this.color;
         ctx.stroke();
 
@@ -146,7 +146,7 @@ class Loop {
 
     game() {
 
-        // 数据
+        // // 数据
         for (let i = 0; i < 5; i++) {
             let dataTemp: number[][] = [];
             for (let j = 0; j < 5; j++) {
@@ -157,27 +157,28 @@ class Loop {
         console.log(this.data);
         for (let i = 0; i < 5; i++) {
             for (let j = 0; j < 5; j++) {
-                new Square([i * 60, j * 60], this.data[i][j][0], this.data[i][j][1]).render(this.context);
+                new Square([j * 60, i * 60], this.data[i][j][0], this.data[i][j][1]).render(this.context);
             }
         }
         //点击
         this.canvas.addEventListener('click', event => this.clickHandle(event));
+
         // 验证是否成功
-        this.validate(0, 0);
+        this.checkGame(0, 0);
 
 
     }
 
 
     clickHandle(event) {
-        let x: number = Math.floor((event.clientX - this.canvas.getBoundingClientRect().left) / 60);
-        let y: number = Math.floor((event.clientY - this.canvas.getBoundingClientRect().top) / 60);
+        let x: number = Math.floor((event.clientY - this.canvas.getBoundingClientRect().top) / 60);
+        let y: number = Math.floor((event.clientX - this.canvas.getBoundingClientRect().left) / 60);
 
         this.data[x][y][1]++;
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         for (let i = 0; i < 5; i++) {
             for (let j = 0; j < 5; j++) {
-                new Square([i * 60, j * 60], this.data[i][j][0], this.data[i][j][1]).render(this.context);
+                new Square([j * 60, i * 60], this.data[i][j][0], this.data[i][j][1]).render(this.context);
             }
         }
 
@@ -189,7 +190,10 @@ class Loop {
 
                 //边缘
                 if (i == 0 || j == 0) {
-                    if (this.data[i][j][0] == 4)return false;
+                    if (this.data[i][j][0] == 4) {
+                        return false;
+                    }
+                    // TODO 边缘左右两边方块判断合法
                 }
 
                 // 非边缘
@@ -199,9 +203,11 @@ class Loop {
                 }
             }
         }
+        alert('成功！');
         return true;
     }
 
+    // 验证方块四周是否合法
     validate(posX: number, posY: number) {
         // 类型判断
         if (this.data[posX][posY][0] == 1) {
@@ -211,7 +217,7 @@ class Loop {
                 if (this.data[posX][posY][0] == 1 && this.data[posX][posY][1] == 3) {
                     return true;
                 }
-                else if (this.data[posX][posY][0] == 2 && (this.data[posX][posY][1] == 1 || this.data[posX][posY][1] == 2)) {
+                else if (this.data[posX][posY][0] == 2 && (this.data[posX][posY][1] == 3 || this.data[posX][posY][1] == 4)) {
                     return true;
                 }
                 else if (this.data[posX][posY][0] == 3 && this.data[posX][posY][1] != 1) {
@@ -227,7 +233,7 @@ class Loop {
                 if (this.data[posX][posY][0] == 1 && this.data[posX][posY][1] == 4) {
                     return true;
                 }
-                else if (this.data[posX][posY][0] == 2 && (this.data[posX][posY][1] == 2 || this.data[posX][posY][1] == 3)) {
+                else if (this.data[posX][posY][0] == 2 && (this.data[posX][posY][1] == 1 || this.data[posX][posY][1] == 4)) {
                     return true;
                 }
                 else if (this.data[posX][posY][0] == 3 && this.data[posX][posY][1] != 2) {
@@ -243,7 +249,7 @@ class Loop {
                 if (this.data[posX][posY][0] == 1 && this.data[posX][posY][1] == 1) {
                     return true;
                 }
-                else if (this.data[posX][posY][0] == 2 && (this.data[posX][posY][1] == 3 || this.data[posX][posY][1] == 4)) {
+                else if (this.data[posX][posY][0] == 2 && (this.data[posX][posY][1] == 1 || this.data[posX][posY][1] == 2)) {
                     return true;
                 }
                 else if (this.data[posX][posY][0] == 3 && this.data[posX][posY][1] != 3) {
@@ -259,7 +265,7 @@ class Loop {
                 if (this.data[posX][posY][0] == 1 && this.data[posX][posY][1] == 2) {
                     return true;
                 }
-                else if (this.data[posX][posY][0] == 2 && (this.data[posX][posY][1] == 1 || this.data[posX][posY][1] == 4)) {
+                else if (this.data[posX][posY][0] == 2 && (this.data[posX][posY][1] == 2 || this.data[posX][posY][1] == 3)) {
                     return true;
                 }
                 else if (this.data[posX][posY][0] == 3 && this.data[posX][posY][1] != 4) {
@@ -274,11 +280,61 @@ class Loop {
         else if (this.data[posX][posY][0] == 2) {
             // 四个方向判断
             if (this.data[posX][posY][1] == 1) {
+                posY -= 1;
+                if (this.data[posX][posY][0] == 1 && this.data[posX][posY][1] != 2) {
+                    return false;
+                }
+                else if (this.data[posX][posY][0] == 2 && (this.data[posX][posY][1] == 1 || this.data[posX][posY][1] == 4)) {
+                    return false;
+                }
+                else if (this.data[posX][posY][0] == 3 && this.data[posX][posY][1] == 4) {
+                    return false;
+                }
+
+                posY += 1;
+                posX -= 1;
+                if (this.data[posX][posY][0] == 1 && this.data[posX][posY][1] != 3) {
+                    return false;
+                }
+                else if (this.data[posX][posY][0] == 2 && (this.data[posX][posY][1] == 1 || this.data[posX][posY][1] == 2)) {
+                    return false;
+                }
+                else if (this.data[posX][posY][0] == 3 && this.data[posX][posY][1] == 1) {
+                    return false;
+                }
+                return true;
+            }
+            else if (this.data[posX][posY][1] == 2) {
                 posY += 1;
                 if (this.data[posX][posY][0] == 1 && this.data[posX][posY][1] != 4) {
                     return false;
                 }
-                else if (this.data[posX][posY][0] == 2 && (this.data[posX][posY][1] == 1 || this.data[posX][posY][1] == 4)) {
+                else if (this.data[posX][posY][0] == 2 && (this.data[posX][posY][1] == 2 || this.data[posX][posY][1] == 3)) {
+                    return false;
+                }
+                else if (this.data[posX][posY][0] == 3 && this.data[posX][posY][1] == 2) {
+                    return false;
+                }
+
+                posY -= 1;
+                posX -= 1;
+                if (this.data[posX][posY][0] == 1 && this.data[posX][posY][1] != 3) {
+                    return false;
+                }
+                else if (this.data[posX][posY][0] == 2 && (this.data[posX][posY][1] == 1 || this.data[posX][posY][1] == 2)) {
+                    return false;
+                }
+                else if (this.data[posX][posY][0] == 3 && this.data[posX][posY][1] == 1) {
+                    return false;
+                }
+                return true;
+            }
+            else if (this.data[posX][posY][1] == 3) {
+                posY += 1;
+                if (this.data[posX][posY][0] == 1 && this.data[posX][posY][1] != 4) {
+                    return false;
+                }
+                else if (this.data[posX][posY][0] == 2 && (this.data[posX][posY][1] == 2 || this.data[posX][posY][1] == 3)) {
                     return false;
                 }
                 else if (this.data[posX][posY][0] == 3 && this.data[posX][posY][1] == 2) {
@@ -290,7 +346,7 @@ class Loop {
                 if (this.data[posX][posY][0] == 1 && this.data[posX][posY][1] != 1) {
                     return false;
                 }
-                else if (this.data[posX][posY][0] == 2 && (this.data[posX][posY][1] == 1 || this.data[posX][posY][1] == 2)) {
+                else if (this.data[posX][posY][0] == 2 && (this.data[posX][posY][1] == 3 || this.data[posX][posY][1] == 4)) {
                     return false;
                 }
                 else if (this.data[posX][posY][0] == 3 && this.data[posX][posY][1] == 3) {
@@ -298,54 +354,234 @@ class Loop {
                 }
                 return true;
             }
-            else if (this.data[posX][posY][1] == 2) {
+            else if (this.data[posX][posY][1] == 4) {
+                posY -= 1;
+                if (this.data[posX][posY][0] == 1 && this.data[posX][posY][1] != 2) {
+                    return false;
+                }
+                else if (this.data[posX][posY][0] == 2 && (this.data[posX][posY][1] == 1 || this.data[posX][posY][1] == 4)) {
+                    return false;
+                }
+                else if (this.data[posX][posY][0] == 3 && this.data[posX][posY][1] == 4) {
+                    return false;
+                }
+
                 posY += 1;
-                if (this.data[posX][posY][0] == 1 && this.data[posX][posY][1] == 4) {
-                    return true;
+                posX += 1;
+                if (this.data[posX][posY][0] == 1 && this.data[posX][posY][1] != 1) {
+                    return false;
                 }
-                else if (this.data[posX][posY][0] == 2 && (this.data[posX][posY][1] == 2 || this.data[posX][posY][1] == 3)) {
-                    return true;
+                else if (this.data[posX][posY][0] == 2 && (this.data[posX][posY][1] == 3 || this.data[posX][posY][1] == 4)) {
+                    return false;
                 }
-                else if (this.data[posX][posY][0] == 3 && this.data[posX][posY][1] != 2) {
-                    return true;
+                else if (this.data[posX][posY][0] == 3 && this.data[posX][posY][1] == 3) {
+                    return false;
+                }
+                return true;
+            }
+        }
+        else if (this.data[posX][posY][0] == 3) {
+            // 四个方向判断
+            if (this.data[posX][posY][1] == 1) {
+                posX -= 1;
+                if (this.data[posX][posY][0] == 1 && this.data[posX][posY][1] != 3) {
+                    return false;
+                }
+                else if (this.data[posX][posY][0] == 2 && (this.data[posX][posY][1] == 1 || this.data[posX][posY][1] == 2)) {
+                    return false;
+                }
+                else if (this.data[posX][posY][0] == 3 && this.data[posX][posY][1] == 1) {
+                    return false;
                 }
                 else if (this.data[posX][posY][0] == 4) {
-                    return true;
+                    return false;
                 }
-                return false;
+
+                posX += 1;
+                posY -= 1;
+                if (this.data[posX][posY][0] == 1 && this.data[posX][posY][1] != 2) {
+                    return false;
+                }
+                else if (this.data[posX][posY][0] == 2 && (this.data[posX][posY][1] == 1 || this.data[posX][posY][1] == 4)) {
+                    return false;
+                }
+                else if (this.data[posX][posY][0] == 3 && this.data[posX][posY][1] == 4) {
+                    return false;
+                }
+                else if (this.data[posX][posY][0] == 4) {
+                    return false;
+                }
+                posY += 2;
+                if (this.data[posX][posY][0] == 1 && this.data[posX][posY][1] != 4) {
+                    return false;
+                }
+                else if (this.data[posX][posY][0] == 2 && (this.data[posX][posY][1] == 2 || this.data[posX][posY][1] == 3)) {
+                    return false;
+                }
+                else if (this.data[posX][posY][0] == 3 && this.data[posX][posY][1] == 2) {
+                    return false;
+                }
+                else if (this.data[posX][posY][0] == 4) {
+                    return false;
+                }
+                return true;
+
+            }
+            else if (this.data[posX][posY][1] == 2) {
+                posX -= 1;
+                if (this.data[posX][posY][0] == 1 && this.data[posX][posY][1] != 3) {
+                    return false;
+                }
+                else if (this.data[posX][posY][0] == 2 && (this.data[posX][posY][1] == 1 || this.data[posX][posY][1] == 2)) {
+                    return false;
+                }
+                else if (this.data[posX][posY][0] == 3 && this.data[posX][posY][1] == 1) {
+                    return false;
+                }
+
+                posX += 1;
+                posY += 1;
+                if (this.data[posX][posY][0] == 1 && this.data[posX][posY][1] != 4) {
+                    return false;
+                }
+                else if (this.data[posX][posY][0] == 2 && (this.data[posX][posY][1] == 2 || this.data[posX][posY][1] == 3)) {
+                    return false;
+                }
+                else if (this.data[posX][posY][0] == 3 && this.data[posX][posY][1] == 2) {
+                    return false;
+                }
+                posX += 1;
+                if (this.data[posX][posY][0] == 1 && this.data[posX][posY][1] != 1) {
+                    return false;
+                }
+                else if (this.data[posX][posY][0] == 2 && (this.data[posX][posY][1] == 3 || this.data[posX][posY][1] == 4)) {
+                    return false;
+                }
+                else if (this.data[posX][posY][0] == 3 && this.data[posX][posY][1] == 3) {
+                    return false;
+                }
+                return true;
+
             }
             else if (this.data[posX][posY][1] == 3) {
                 posX += 1;
-                if (this.data[posX][posY][0] == 1 && this.data[posX][posY][1] == 1) {
-                    return true;
+                if (this.data[posX][posY][0] == 1 && this.data[posX][posY][1] != 1) {
+                    return false;
                 }
                 else if (this.data[posX][posY][0] == 2 && (this.data[posX][posY][1] == 3 || this.data[posX][posY][1] == 4)) {
-                    return true;
+                    return false;
                 }
-                else if (this.data[posX][posY][0] == 3 && this.data[posX][posY][1] != 3) {
-                    return true;
+                else if (this.data[posX][posY][0] == 3 && this.data[posX][posY][1] == 3) {
+                    return false;
                 }
-                else if (this.data[posX][posY][0] == 4) {
-                    return true;
+
+                posX -= 1;
+                posY += 1;
+                if (this.data[posX][posY][0] == 1 && this.data[posX][posY][1] != 4) {
+                    return false;
                 }
-                return false;
-            }
-            else if (this.data[posX][posY][1] == 4) {
-                posY -= 1;
-                if (this.data[posX][posY][0] == 1 && this.data[posX][posY][1] == 2) {
-                    return true;
+                else if (this.data[posX][posY][0] == 2 && (this.data[posX][posY][1] == 2 || this.data[posX][posY][1] == 3)) {
+                    return false;
+                }
+                else if (this.data[posX][posY][0] == 3 && this.data[posX][posY][1] == 2) {
+                    return false;
+                }
+                posY -= 2;
+                if (this.data[posX][posY][0] == 1 && this.data[posX][posY][1] != 2) {
+                    return false;
                 }
                 else if (this.data[posX][posY][0] == 2 && (this.data[posX][posY][1] == 1 || this.data[posX][posY][1] == 4)) {
-                    return true;
+                    return false;
                 }
-                else if (this.data[posX][posY][0] == 3 && this.data[posX][posY][1] != 4) {
-                    return true;
+                else if (this.data[posX][posY][0] == 3 && this.data[posX][posY][1] == 4) {
+                    return false;
                 }
-                else if (this.data[posX][posY][0] == 4) {
-                    return true;
+                return true;
+
+            }
+            else if (this.data[posX][posY][1] == 4) {
+                posX -= 1;
+                if (this.data[posX][posY][0] == 1 && this.data[posX][posY][1] != 3) {
+                    return false;
                 }
+                else if (this.data[posX][posY][0] == 2 && (this.data[posX][posY][1] == 1 || this.data[posX][posY][1] == 2)) {
+                    return false;
+                }
+                else if (this.data[posX][posY][0] == 3 && this.data[posX][posY][1] == 1) {
+                    return false;
+                }
+
+                posX += 1;
+                posY -= 1;
+                if (this.data[posX][posY][0] == 1 && this.data[posX][posY][1] != 2) {
+                    return false;
+                }
+                else if (this.data[posX][posY][0] == 2 && (this.data[posX][posY][1] == 1 || this.data[posX][posY][1] == 4)) {
+                    return false;
+                }
+                else if (this.data[posX][posY][0] == 3 && this.data[posX][posY][1] == 4) {
+                    return false;
+                }
+                posY += 1;
+                posX += 1;
+                if (this.data[posX][posY][0] == 1 && this.data[posX][posY][1] != 1) {
+                    return false;
+                }
+                else if (this.data[posX][posY][0] == 2 && (this.data[posX][posY][1] == 3 || this.data[posX][posY][1] == 4)) {
+                    return false;
+                }
+                else if (this.data[posX][posY][0] == 3 && this.data[posX][posY][1] == 3) {
+                    return false;
+                }
+                return true;
+            }
+        }
+        else if (this.data[posX][posY][0] == 4) {
+            // 不用判断方向
+            posX -= 1;
+            if (this.data[posX][posY][0] == 1 && this.data[posX][posY][1] != 3) {
                 return false;
             }
+            else if (this.data[posX][posY][0] == 2 && (this.data[posX][posY][1] == 1 || this.data[posX][posY][1] == 2)) {
+                return false;
+            }
+            else if (this.data[posX][posY][0] == 3 && this.data[posX][posY][1] == 1) {
+                return false;
+            }
+
+            posX += 1;
+            posY -= 1;
+            if (this.data[posX][posY][0] == 1 && this.data[posX][posY][1] != 2) {
+                return false;
+            }
+            else if (this.data[posX][posY][0] == 2 && (this.data[posX][posY][1] == 1 || this.data[posX][posY][1] == 4)) {
+                return false;
+            }
+            else if (this.data[posX][posY][0] == 3 && this.data[posX][posY][1] == 4) {
+                return false;
+            }
+            posY += 2;
+            if (this.data[posX][posY][0] == 1 && this.data[posX][posY][1] != 4) {
+                return false;
+            }
+            else if (this.data[posX][posY][0] == 2 && (this.data[posX][posY][1] == 2 || this.data[posX][posY][1] == 3)) {
+                return false;
+            }
+            else if (this.data[posX][posY][0] == 3 && this.data[posX][posY][1] == 2) {
+                return false;
+            }
+            posY += 1;
+            posX += 1;
+            if (this.data[posX][posY][0] == 1 && this.data[posX][posY][1] != 1) {
+                return false;
+            }
+            else if (this.data[posX][posY][0] == 2 && (this.data[posX][posY][1] == 3 || this.data[posX][posY][1] == 4)) {
+                return false;
+            }
+            else if (this.data[posX][posY][0] == 3 && this.data[posX][posY][1] == 3) {
+                return false;
+            }
+            return true;
         }
     }
 }
